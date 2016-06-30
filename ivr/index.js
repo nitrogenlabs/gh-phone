@@ -1,88 +1,91 @@
 import express from 'express';
 import twilio from 'twilio';
+import request from 'request-promise';
 
 // Express
 const router = express.Router();
 
-// POST: '/ivr/welcome'
-router.post('/welcome', twilio.webhook({validate: false}), (request, response) => {
+// Welcome
+router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
   const twiml = new twilio.TwimlResponse();
   twiml.gather({
     action: '/ivr/menu',
     numDigits: '1',
     method: 'POST'
   }, node => {
-    node.play('http://howtodocs.s3.amazonaws.com/et-phone.mp3', {loop: 3});
+    node.say('Welcome to Carebear! Press 1 for Grub Hub. Press 2 for Seamless.', {voice: 'alice', language: 'en-US'});
   });
-  response.send(twiml);
+  res.send(twiml);
 });
 
-// POST: '/ivr/menu'
-router.post('/menu', twilio.webhook({validate: false}), (request, response) => {
-  const selectedOption = request.body.Digits;
+// Select brand
+router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
+  const selectedOption = req.body.Digits;
   let optionActions = {
-    '1': giveExtractionPointInstructions,
-    '2': listPlanets
+    '1': gotoGrubHub,
+    '2': gotoSeamless
   };
 
-  if (optionActions[selectedOption]) {
+  if(optionActions[selectedOption]) {
     const twiml = new twilio.TwimlResponse();
-    optionActions[selectedOption](twiml);
-    response.send(twiml);
+    optionActions[selectedOption](twiml)
+      .then(() => {
+        res.send(twiml);
+      });
   }
-  response.send(redirectWelcome());
+  res.send(redirectWelcome());
 });
 
-// POST: '/ivr/planets'
-router.post('/planets', twilio.webhook({validate: false}), (request, response) => {
-  const selectedOption = request.body.Digits;
-  let optionActions = {
-    '2': '+12024173378',
-    '3': '+12027336386',
-    '4': '+12027336637'
-  };
-
-  if (optionActions[selectedOption]) {
-    const twiml = new twilio.TwimlResponse();
-    twiml.dial(optionActions[selectedOption]);
-    response.send(twiml);
-  }
-  response.send(redirectWelcome());
+// Connect to agent
+router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
+  const twiml = new twilio.TwimlResponse();
+  twiml.dial(req.body.id);
+  res.send(twiml);
 });
 
-const giveExtractionPointInstructions = twiml => {
-  twiml.say('To get to your extraction point, get on your bike and go down ' +
-    'the street. Then Left down an alley. Avoid the police cars. Turn left ' +
-    'into an unfinished housing development. Fly over the roadblock. Go ' +
-    'passed the moon. Soon after you will see your mother ship.',
-    {voice: 'alice', language: 'en-GB'});
-
-  twiml.say('Thank you for calling the ET Phone Home Service - the ' +
-    'adventurous alien\'s first choice in intergalactic travel');
-
-  twiml.hangup();
-  return twiml;
+const gotoGrubHub = twiml => {
+  return createTicket('GrubHub', res.body.CallSid, res.body.PhoneNumber)
+    .then(ticketId => {
+      twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
+      return twiml;
+    });
 };
 
-const listPlanets = twiml => {
-  twiml.gather({
-    action: '/ivr/planets',
-    numDigits: '1',
-    method: 'POST'
-  }, node => {
-    node.say('To call the planet Broh doe As O G, press 2. To call the planet ' +
-      'DuhGo bah, press 3. To call an oober asteroid to your location, press 4. To ' +
-      'go back to the main menu, press the star key ',
-      {voice: 'alice', language: 'en-GB', loop: 3});
-  });
-  return twiml;
+const gotoSeamless = twiml => {
+  return createTicket('Seamless', res.body.CallSid, res.body.PhoneNumber)
+    .then(ticketId => {
+      twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
+      return twiml;
+    });
 };
 
 const redirectWelcome = () => {
   const twiml = new twilio.TwimlResponse();
-  twiml.say('Returning to the main menu', {voice: 'alice', language: 'en-GB'});
+  twiml.say('Returning to the main menu.', {voice: 'alice', language: 'en-GB'});
   twiml.redirect('/ivr/welcome');
   return twiml;
+};
+
+const createTicket = (brand, callId, phone) => {
+  return request(
+    {
+      method: 'POST',
+      url: 'https://api-pp.grubhub.com/rainbow/telephone',
+      headers: {
+        Authorization: 'Token vNC3T0CnaTSLkXnjSoqYQcijpdrESWZu'
+      },
+      form: {
+        brand,
+        call_ani: phone,
+        call_dnis: phone,
+        call_id: callId,
+        scope: 'diner,restaurant'
+      },
+      json: true
+    })
+    .then(json => {
+      return json.zendesk_ticket_id;
+    });
 };
 
 export default router;

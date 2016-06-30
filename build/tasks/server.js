@@ -3,7 +3,7 @@ import childProcess from 'child_process';
 
 gulp.task('server:dev', (done) => {
   let exec = childProcess.exec;
-  let proc = exec('nodemon --watch build --watch graphql --watch models development.js');
+  let proc = exec('nodemon --watch build --watch graphql --watch models --watch ivr development.js');
   proc.stderr.on('data', (data) => {
     return process.stdout.write(data);
   });

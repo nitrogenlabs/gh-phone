@@ -7,11 +7,13 @@ import config from './config';
 import {Server} from 'http';
 import express from 'express';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import SocketIO from 'socket.io';
 import cors from 'cors';
 import utils from '../models/utils';
 import ivr from '../ivr';
 
+// Mask GraphQL Errors
 maskErrors(schema);
 
 // Express
@@ -55,6 +57,9 @@ app.use('/graphql', cors(corsOpts), graphqlHTTP(req => ({
 
 // IVR
 app.use('/ivr', ivr);
+
+// Static files
+app.use('/', express.static(config.absolute(config.directories.dist)));
 
 // Run server on default port
 server

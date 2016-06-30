@@ -5,8 +5,8 @@ let config = {
   name: 'gh-phone',
   url: '',
   port: {
-    development: 6000,
-    production: 6000
+    development: 8080,
+    production: 8080
   },
   
   filenames: {
