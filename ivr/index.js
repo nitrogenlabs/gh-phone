@@ -21,23 +21,27 @@ router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
 
 // Select brand
 router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
-  const selectedOption = req.body.Digits;
-  let optionActions = {
+  const selected = req.body.Digits;
+  let options = {
     '1': gotoGrubHub,
     '2': gotoSeamless
   };
 
-  if(optionActions[selectedOption]) {
+  if(options[selected]) {
     const twiml = new twilio.TwimlResponse();
     const callId = req.body.CallSid;
     const phone = req.body.PhoneNumber;
-    optionActions[selectedOption](twiml, callId, phone)
+
+    options[selected](twiml, callId, phone)
       .then(() => {
         res.send(twiml);
+      })
+      .catch(() => {
+        res.send(redirectWelcome());
       });
+  } else {
+    res.send(redirectWelcome());
   }
-
-  res.send(redirectWelcome());
 });
 
 // Connect to agent
