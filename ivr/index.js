@@ -15,6 +15,7 @@ router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
   }, node => {
     node.say('Welcome to Carebear! Press 1 for Grub Hub. Press 2 for Seamless.', {voice: 'alice', language: 'en-US'});
   });
+
   res.send(twiml);
 });
 
@@ -28,11 +29,14 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
 
   if(optionActions[selectedOption]) {
     const twiml = new twilio.TwimlResponse();
-    optionActions[selectedOption](twiml)
+    const callId = res.body.CallSid;
+    const phone = res.body.PhoneNumber;
+    optionActions[selectedOption](twiml, callId, phone)
       .then(() => {
         res.send(twiml);
       });
   }
+
   res.send(redirectWelcome());
 });
 
@@ -43,16 +47,16 @@ router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
   res.send(twiml);
 });
 
-const gotoGrubHub = twiml => {
-  return createTicket('GrubHub', res.body.CallSid, res.body.PhoneNumber)
+const gotoGrubHub = (twiml, callId, phone) => {
+  return createTicket('GrubHub', callId, phone)
     .then(ticketId => {
       twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
       return twiml;
     });
 };
 
-const gotoSeamless = twiml => {
-  return createTicket('Seamless', res.body.CallSid, res.body.PhoneNumber)
+const gotoSeamless = (twiml, callId, phone) => {
+  return createTicket('Seamless', callId, phone)
     .then(ticketId => {
       twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
       return twiml;
