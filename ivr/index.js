@@ -30,7 +30,7 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
   };
 
   if(options[selected]) {
-    const twiml = new twilio.TwimlResponse();
+    let twiml = new twilio.TwimlResponse();
     const callId = req.body.CallSid;
     let phone = req.body.From || '';
 
@@ -39,7 +39,12 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
     }
 
     options[selected](twiml, callId, phone)
-      .then(twiml => {
+      .then(results => {
+        twiml = results.twiml;
+        twiml.conference(results.ticketId, {
+          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.rock',
+          startConferenceOnEnter: false
+        });
         res.send(twiml);
       })
       .catch(() => {
@@ -61,7 +66,7 @@ const gotoGrubHub = (twiml, callId, phone) => {
   return createTicket('GrubHub', callId, phone)
     .then(ticketId => {
       twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
-      return twiml;
+      return {twiml, ticketId};
     });
 };
 
@@ -69,7 +74,7 @@ const gotoSeamless = (twiml, callId, phone) => {
   return createTicket('Seamless', callId, phone)
     .then(ticketId => {
       twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
-      return twiml;
+      return {twiml, ticketId};
     });
 };
 
