@@ -32,7 +32,7 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
   if(options[selected]) {
     const twiml = new twilio.TwimlResponse();
     const callId = req.body.CallSid;
-    const phone = req.body.PhoneNumber;
+    const phone = req.body.From;
 
     options[selected](twiml, callId, phone)
       .then(() => {
@@ -83,7 +83,6 @@ const errorOccurred = () => {
   twiml.hangup();
   return twiml;
 };
-
 
 router.get('/createTicket', (req, res) => {
   createTicket('GrubHub', req.query.callId, req.query.phone)
