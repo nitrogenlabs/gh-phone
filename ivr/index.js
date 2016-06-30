@@ -110,12 +110,13 @@ const createTicket = (brand, callId, phone) => {
         scope: 'diner,restaurant'
       }
     }, (err, res, body) => {
-      if(parseError) {
+      if(err) {
         console.error(err);
         return reject(err);
       }
 
       const parser = new xml2js.Parser();
+      
       parser.parseString(body, (parseError, parseResult) => {
         if(parseError) {
           console.error(parseError);
