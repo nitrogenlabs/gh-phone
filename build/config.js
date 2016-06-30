@@ -1,7 +1,7 @@
 import path from 'path';
 
 let config = {
-  env: process.env.NODE_ENV,
+  env: process.env.NODE_ENV || 'development',
   name: 'gh-phone',
   url: '',
   port: {
