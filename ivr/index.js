@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import request from 'request';
 import xml2js from 'xml2js';
 import Promise from 'bluebird';
+import formatter from 'google-libphonenumber';
 
 // Express
 const router = express.Router();
@@ -36,6 +37,15 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
 
     if(phone === 'client:Anonymous'){
       phone = '';
+    } else {
+      const country = req.body.FromCountry || 'US';
+
+      if(country === 'US') {
+        const phoneUtil = formatter.PhoneNumberUtil.getInstance();
+        const phoneObj = phoneUtil.parse(req.query.phone, country);
+        const values = phoneObj['values_'] || {};
+        phone = values['2'] || req.query.phone;
+      }
     }
 
     options[selected](twiml, callId, phone)
