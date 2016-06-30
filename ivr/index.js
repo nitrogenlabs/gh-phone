@@ -32,7 +32,11 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
   if(options[selected]) {
     const twiml = new twilio.TwimlResponse();
     const callId = req.body.CallSid;
-    const phone = req.body.From;
+    let phone = req.body.From || '';
+
+    if(phone === 'client:Anonymous'){
+      phone = '';
+    }
 
     options[selected](twiml, callId, phone)
       .then(() => {
