@@ -42,9 +42,9 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
 
       if(country === 'US') {
         const phoneUtil = formatter.PhoneNumberUtil.getInstance();
-        const phoneObj = phoneUtil.parse(req.query.phone, country);
+        const phoneObj = phoneUtil.parse(phone, country);
         const values = phoneObj['values_'] || {};
-        phone = values['2'] || req.query.phone;
+        phone = values['2'] || phone;
       }
     }
 
