@@ -15,7 +15,7 @@ router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
     numDigits: '1',
     method: 'POST'
   }, node => {
-    node.say('Welcome to Carebear! Press 1 for grub hub. Press 2 for seamless.', {voice: 'woman', language: 'en-US'});
+    node.say('Welcome to Carebear! Press 1 for grub hub. Press 2 for seamless.', {voice: 'man', language: 'en-US'});
   });
 
   res.send(twiml);
@@ -39,7 +39,7 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
     }
 
     options[selected](twiml, callId, phone)
-      .then(() => {
+      .then(twiml => {
         res.send(twiml);
       })
       .catch(() => {
@@ -60,7 +60,7 @@ router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
 const gotoGrubHub = (twiml, callId, phone) => {
   return createTicket('GrubHub', callId, phone)
     .then(ticketId => {
-      twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'woman', language: 'en-US'});
+      twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
       return twiml;
     });
 };
@@ -68,21 +68,21 @@ const gotoGrubHub = (twiml, callId, phone) => {
 const gotoSeamless = (twiml, callId, phone) => {
   return createTicket('Seamless', callId, phone)
     .then(ticketId => {
-      twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'woman', language: 'en-US'});
+      twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
       return twiml;
     });
 };
 
 const redirectWelcome = () => {
   const twiml = new twilio.TwimlResponse();
-  twiml.say('Returning to the main menu.', {voice: 'woman', language: 'en-US'});
+  twiml.say('Returning to the main menu.', {voice: 'man', language: 'en-US'});
   twiml.redirect('/ivr/welcome');
   return twiml;
 };
 
 const errorOccurred = () => {
   const twiml = new twilio.TwimlResponse();
-  twiml.say('There was an error in creating your ticket.', {voice: 'woman', language: 'en-US'});
+  twiml.say('There was an error in creating your ticket.', {voice: 'man', language: 'en-US'});
   twiml.hangup();
   return twiml;
 };
@@ -95,7 +95,7 @@ router.get('/createTicket', (req, res) => {
     .catch(console.error);
 });
 
-const createTicket = (brand, callId, phone) => {
+const createTicket = (brand = '', callId = '', phone = '') => {
   const promise = new Promise((resolve, reject) => {
     request.post({
       uri: 'https://api-pp.grubhub.com/rainbow/telephone',
@@ -109,23 +109,24 @@ const createTicket = (brand, callId, phone) => {
         call_id: callId,
         scope: 'diner,restaurant'
       }
-    }, (err, res, body) => {
+    }, (err, res, xml) => {
       if(err) {
         console.error(err);
         return reject(err);
       }
 
       const parser = new xml2js.Parser();
-      
-      parser.parseString(body, (parseError, parseResult) => {
+
+      parser.parseString(xml, (parseError, parseResult) => {
         if(parseError) {
           console.error(parseError);
           return reject(parseError);
         }
 
+        parseResult = parseResult || {};
         const response = parseResult.response || {};
         const variables = response.variables || [];
-        const vars = variables[0] ? variables[0].var : [];
+        const vars = variables[0] ? variables[0]['var'] : [];
         const ticket = vars[1] || {};
         let ticketId = '';
 
@@ -138,7 +139,11 @@ const createTicket = (brand, callId, phone) => {
     });
   });
 
-  promise.catch(() => {});
+  promise.catch(error => {
+    console.error(error);
+    return error;
+  });
+
   return promise;
 };
 
