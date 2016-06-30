@@ -78,8 +78,7 @@ const redirectWelcome = () => {
 
 const errorOccurred = () => {
   const twiml = new twilio.TwimlResponse();
-  twiml.say('There was an error in creating your ticket. Returning to the main menu.',
-    {voice: 'woman', language: 'en-US'});
+  twiml.say('There was an error in creating your ticket.', {voice: 'woman', language: 'en-US'});
   twiml.hangup();
   return twiml;
 };
@@ -93,7 +92,7 @@ router.get('/createTicket', (req, res) => {
 });
 
 const createTicket = (brand, callId, phone) => {
-  return new Promise(resolve => {
+  const promise = new Promise((resolve, reject) => {
     request.post({
       uri: 'https://api-pp.grubhub.com/rainbow/telephone',
       headers: {
@@ -107,8 +106,18 @@ const createTicket = (brand, callId, phone) => {
         scope: 'diner,restaurant'
       }
     }, (err, res, body) => {
+      if(parseError) {
+        console.error(err);
+        return reject(err);
+      }
+
       const parser = new xml2js.Parser();
       parser.parseString(body, (parseError, parseResult) => {
+        if(parseError) {
+          console.error(parseError);
+          return reject(parseError);
+        }
+
         const response = parseResult.response || {};
         const variables = response.variables || [];
         const vars = variables[0] ? variables[0].var : [];
@@ -119,10 +128,13 @@ const createTicket = (brand, callId, phone) => {
           ticketId = ticket['$']['expr'];
         }
 
-        resolve(ticketId);
+        return resolve(ticketId);
       });
     });
   });
+
+  promise.catch(() => {});
+  return promise;
 };
 
 export default router;
