@@ -1,6 +1,7 @@
 import express from 'express';
 import twilio from 'twilio';
-import request from 'request-promise';
+import request from 'request';
+import xml2js from 'xml2js';
 
 // Express
 const router = express.Router();
@@ -82,11 +83,19 @@ const errorOccurred = () => {
   return twiml;
 };
 
+
+router.get('/createTicket', (req, res) => {
+  createTicket('GrubHub', req.query.callId, req.query.phone)
+    .then(ticketId => {
+      res.send(`saved: ${ticketId}`);
+    })
+    .catch(console.error);
+});
+
 const createTicket = (brand, callId, phone) => {
-  return request(
-    {
-      method: 'POST',
-      url: 'https://api-pp.grubhub.com/rainbow/telephone',
+  return new Promise(resolve => {
+    request.post({
+      uri: 'https://api-pp.grubhub.com/rainbow/telephone',
       headers: {
         Authorization: 'Token vNC3T0CnaTSLkXnjSoqYQcijpdrESWZu'
       },
@@ -96,12 +105,24 @@ const createTicket = (brand, callId, phone) => {
         call_dnis: phone,
         call_id: callId,
         scope: 'diner,restaurant'
-      },
-      json: true
-    })
-    .then(json => {
-      return json.zendesk_ticket_id;
+      }
+    }, (err, res, body) => {
+      const parser = new xml2js.Parser();
+      parser.parseString(body, (parseError, parseResult) => {
+        const response = parseResult.response || {};
+        const variables = response.variables || [];
+        const vars = variables[0] ? variables[0].var : [];
+        const ticket = vars[1] || {};
+        let ticketId = '';
+
+        if(ticket['$']) {
+          ticketId = ticket['$']['expr'];
+        }
+
+        resolve(ticketId);
+      });
     });
+  });
 };
 
 export default router;
