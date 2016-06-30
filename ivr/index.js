@@ -2,6 +2,7 @@ import express from 'express';
 import twilio from 'twilio';
 import request from 'request';
 import xml2js from 'xml2js';
+import Promise from 'bluebird';
 
 // Express
 const router = express.Router();
@@ -79,7 +80,7 @@ const errorOccurred = () => {
   const twiml = new twilio.TwimlResponse();
   twiml.say('There was an error in creating your ticket. Returning to the main menu.',
     {voice: 'woman', language: 'en-US'});
-  twiml.redirect('/ivr/welcome');
+  twiml.hangup();
   return twiml;
 };
 
