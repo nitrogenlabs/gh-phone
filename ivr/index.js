@@ -13,7 +13,7 @@ router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
     numDigits: '1',
     method: 'POST'
   }, node => {
-    node.say('Welcome to Carebear! Press 1 for Grub Hub. Press 2 for Seamless.', {voice: 'alice', language: 'en-US'});
+    node.say('Welcome to Carebear! Press 1 for grub hub. Press 2 for seamless.', {voice: 'woman', language: 'en-US'});
   });
 
   res.send(twiml);
@@ -22,7 +22,7 @@ router.post('/welcome', twilio.webhook({validate: false}), (req, res) => {
 // Select brand
 router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
   const selected = req.body.Digits;
-  let options = {
+  const options = {
     '1': gotoGrubHub,
     '2': gotoSeamless
   };
@@ -37,7 +37,7 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
         res.send(twiml);
       })
       .catch(() => {
-        res.send(redirectWelcome());
+        res.send(errorOccurred());
       });
   } else {
     res.send(redirectWelcome());
@@ -54,7 +54,7 @@ router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
 const gotoGrubHub = (twiml, callId, phone) => {
   return createTicket('GrubHub', callId, phone)
     .then(ticketId => {
-      twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
+      twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'woman', language: 'en-US'});
       return twiml;
     });
 };
@@ -62,14 +62,22 @@ const gotoGrubHub = (twiml, callId, phone) => {
 const gotoSeamless = (twiml, callId, phone) => {
   return createTicket('Seamless', callId, phone)
     .then(ticketId => {
-      twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'alice', language: 'en-US'});
+      twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'woman', language: 'en-US'});
       return twiml;
     });
 };
 
 const redirectWelcome = () => {
   const twiml = new twilio.TwimlResponse();
-  twiml.say('Returning to the main menu.', {voice: 'alice', language: 'en-GB'});
+  twiml.say('Returning to the main menu.', {voice: 'woman', language: 'en-US'});
+  twiml.redirect('/ivr/welcome');
+  return twiml;
+};
+
+const errorOccurred = () => {
+  const twiml = new twilio.TwimlResponse();
+  twiml.say('There was an error in creating your ticket. Returning to the main menu.',
+    {voice: 'woman', language: 'en-US'});
   twiml.redirect('/ivr/welcome');
   return twiml;
 };
