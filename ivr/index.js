@@ -29,8 +29,8 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
 
   if(optionActions[selectedOption]) {
     const twiml = new twilio.TwimlResponse();
-    const callId = res.body.CallSid;
-    const phone = res.body.PhoneNumber;
+    const callId = req.body.CallSid;
+    const phone = req.body.PhoneNumber;
     optionActions[selectedOption](twiml, callId, phone)
       .then(() => {
         res.send(twiml);
