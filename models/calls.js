@@ -5,9 +5,9 @@ let model = {};
 
 model.getToken = id => {
   const capability = new Twilio.Capability(config.twilio.sid, config.twilio.token);
-  capability.allowClientOutgoing(config.twilio.app);
+  capability.allowClientOutgoing(config.twilio.agent);
   capability.allowClientIncoming(id);
-  return {token: capability.generateToken()};
+  return capability.generate();
 };
 
 model.retrieve = callId => {

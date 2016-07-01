@@ -3,7 +3,7 @@ import callType from '../types/calls';
 import CallsModel from '../../models/calls';
 
 export default {
-  users: {
+  calls: {
     type: new GraphQLObjectType({
       name: 'UserQueries',
       fields: {

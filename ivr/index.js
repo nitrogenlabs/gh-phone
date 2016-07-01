@@ -62,8 +62,29 @@ router.post('/menu', twilio.webhook({validate: false}), (req, res) => {
 
 // Connect to agent
 router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
+  let phone = req.body.phone || '';
+  const conference = req.body.conference || '';
+
   const twiml = new twilio.TwimlResponse();
-  twiml.dial(req.body.id);
+
+  if(phone !== '') {
+    const phoneUtil = formatter.PhoneNumberUtil.getInstance();
+    const country = req.body.country || 'US';
+    const phoneObj = phoneUtil.parse(phone, country);
+    phone = phoneUtil.format(phoneObj, formatter.PhoneNumberFormat.E164);
+    twiml.dial(phone);
+  } else {
+    twiml.dial(node => {
+      node.conference(conference, {
+        waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.soft-rock',
+        startConferenceOnEnter: true,
+        endConferenceOnExit: true,
+        beep: false,
+        record: 'record-from-start'
+      });
+    });
+  }
+
   res.send(twiml);
 });
 
@@ -73,8 +94,11 @@ const gotoGrubHub = (twiml, callId, phone) => {
       twiml.say(`Thank you for calling grub hub. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
       twiml.dial(node => {
         node.conference(ticketId, {
-          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.rock',
-          startConferenceOnEnter: false
+          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.soft-rock',
+          startConferenceOnEnter: false,
+          endConferenceOnExit: false,
+          beep: false,
+          record: 'record-from-start'
         });
       });
       return twiml;
@@ -87,8 +111,11 @@ const gotoSeamless = (twiml, callId, phone) => {
       twiml.say(`Thank you for calling seamless. Your ticket is: ${ticketId}`, {voice: 'man', language: 'en-US'});
       twiml.dial(node => {
         node.conference(ticketId, {
-          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.rock',
-          startConferenceOnEnter: false
+          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.soft-rock',
+          startConferenceOnEnter: false,
+          endConferenceOnExit: false,
+          beep: false,
+          record: 'record-from-start'
         });
       });
       return twiml;

@@ -75,11 +75,19 @@ config.jwt = {
 };
 
 // Twilio
+// config.twilio = {
+//   number: config.env === 'production' ? '+18554165227' : '+15005550006',
+//   sid: config.env === 'production' ? 'AC90b0528a911e652d643329a4d7b4d2c7' : 'AC6bd7f513cbed2e5134c650be06cc732e',
+//   token: config.env === 'production' ? '3c11de2318b6d5e4209eb2eaa86a9eca' : '520ae739e761bab759b147f1ad28278f',
+//   app: 'AP7ecbcef24bb42d182e8bff15a10ffa5b'
+// };
+
 config.twilio = {
-  number: config.env === 'production' ? '+18554165227' : '+15005550006',
-  sid: config.env === 'production' ? 'AC90b0528a911e652d643329a4d7b4d2c7' : 'AC6bd7f513cbed2e5134c650be06cc732e',
-  token: config.env === 'production' ? '3c11de2318b6d5e4209eb2eaa86a9eca' : '520ae739e761bab759b147f1ad28278f',
-  app: 'AP7ecbcef24bb42d182e8bff15a10ffa5b'
+  number: '+18554165227',
+  sid: 'AC90b0528a911e652d643329a4d7b4d2c7',
+  token: '3c11de2318b6d5e4209eb2eaa86a9eca',
+  app: 'AP7ecbcef24bb42d182e8bff15a10ffa5b',
+  agent: 'AP8037dbbb4760e1cfcd4cd0a720051c6f'
 };
 
 export default config;
