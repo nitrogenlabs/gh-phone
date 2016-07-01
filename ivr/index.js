@@ -4,6 +4,7 @@ import request from 'request';
 import xml2js from 'xml2js';
 import Promise from 'bluebird';
 import formatter from 'google-libphonenumber';
+import config from '../build/config';
 
 // Express
 const router = express.Router();
