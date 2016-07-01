@@ -16,8 +16,20 @@ model.retrieve = callId => {
       url: `/Accounts/${config.twilio.sid}/Calls/${callId}`,
       method: 'POST'
     },
-    (error, responseData) => {
+    (error, data) => {
       //work with response data
     });
 };
+
+model.getCallsByTicket = ticketId => {
+  const client = new Twilio.RestClient(config.twilio.sid, config.twilio.token);
+  client.request({
+      url: `/Accounts/${config.twilio.sid}/Calls/${callId}`,
+      method: 'POST'
+    },
+    (error, data) => {
+      //work with response data
+    });
+};
+
 export default model;

@@ -72,7 +72,9 @@ router.post('/agent', twilio.webhook({validate: false}), (req, res) => {
     const country = req.body.country || 'US';
     const phoneObj = phoneUtil.parse(phone, country);
     phone = phoneUtil.format(phoneObj, formatter.PhoneNumberFormat.E164);
-    twiml.dial(phone);
+    twiml.dial(node => {
+      node.number(phone);
+    });
   } else {
     twiml.dial(node => {
       node.conference(conference, {
